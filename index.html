@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국제조세조정 퀴즈 대작전! 🕵️‍♀️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <style>
+        /* Inter font setting */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply background and text color for the entire body using Tailwind's dark: prefix */
+            /* Default light mode colors */
+            @apply bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Add smooth transition effect */
+        }
+        /* Scrollbar design (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+            @apply dark:bg-gray-700; /* Dark mode scrollbar track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            @apply dark:bg-gray-500; /* Dark mode scrollbar thumb */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            @apply dark:bg-gray-400; /* Dark mode scrollbar thumb hover */
+        }
+
+        /* --- Dark Mode Specific Overrides (Stronger Application for text visibility) --- */
+        /* Ensure body background changes directly when html has 'dark' class and text becomes very light */
+        html.dark body {
+            background-color: #111827 !important; /* Tailwind's gray-900 equivalent */
+            color: #f9fafb !important; /* Tailwind's gray-100 equivalent - general text color */
+        }
+        /* Ensure quiz-container background changes directly and its child texts are bright */
+        html.dark #quiz-container {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent */
+        }
+
+        /* Force specific text elements to be white in dark mode */
+        html.dark #start-screen h1,
+        html.dark #start-screen p,
+        html.dark #quiz-header #question-count,
+        html.dark #quiz-header #timer-display,
+        html.dark #question-text,
+        html.dark #feedback-text,
+        html.dark #explanation-text,
+        html.dark #end-quiz-screen h2,
+        html.dark #incorrect-count-display {
+            color: #f9fafb !important; /* Tailwind's gray-100 - very light almost white */
+        }
+
+        /* MODIFIED: Ensure feedback-explanation-area background changes in dark mode */
+        html.dark #feedback-explanation-area {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent for the explanation box */
+            border-color: #4b5563 !important; /* Dark mode border color */
+        }
+
+
+        /* Choices text color in dark mode - APPLY !IMPORTANT HERE more directly */
+        html.dark #question-choices-area > div {
+            color: #f9fafb !important; /* Ensures choice text is white in dark mode */
+            background-color: #374151 !important; /* Tailwind gray-700 equivalent */
+            border-color: #4b5563 !important; /* Tailwind gray-600 equivalent */
+        }
+
+        /* Override specific class text colors for dark mode */
+        .text-gray-700 { /* For start screen P tags, question count, timer, incorrect count */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-gray-800 { /* For H1, H2, Question text */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-blue-600 { /* For scores etc. */
+             @apply dark:text-blue-400 !important; /* Keep blue for scores but make it dark-mode friendly */
+        }
+
+        /* Specific dark mode styles for choice buttons */
+        #question-choices-area > div.hover\:bg-blue-50:hover {
+            @apply dark:hover:bg-blue-900 dark:hover:bg-opacity-20;
+        }
+
+        /* MODIFIED: Changed selected choice background and added distinct blue border for dark mode */
+        #question-choices-area > div.bg-blue-200 { /* selected choice in light mode */
+            /* Existing light mode styles */
+        }
+        html.dark #question-choices-area > div.bg-blue-200 { /* selected choice in dark mode */
+            background-color: #2a3547 !important; /* Slightly lighter than gray-800, darker than gray-700 for distinct selection */
+            border-color: #60a5fa !important; /* Tailwind blue-400 for a clear blue border */
+            border-width: 2px !important; /* Make border more visible */
+            /* Removed ring as border is now used for highlight */
+        }
+
+        #question-choices-area > div.bg-green-100 { /* correct answer feedback */
+            @apply dark:bg-green-700 dark:border-green-400;
+        }
+        #question-choices-area > div.bg-green-200 { /* selected correct answer */
+            @apply dark:bg-green-600 dark:border-green-300;
+        }
+        #question-choices-area > div.bg-red-200 { /* selected incorrect answer */
+            @apply dark:bg-red-600 dark:border-red-300;
+        }
+
+        /* --- Dark Mode for Message Box --- */
+        html.dark #message-box > div { /* Inner div of the message box */
+            background-color: #1f2937 !important; /* Darker background */
+            color: #f9fafb !important; /* Light text for consistency */
+        }
+
+        html.dark #message-text { /* Text inside the message box */
+            color: #f9fafb !important; /* Ensure message text is light */
+        }
+
+        /* Message box button for dark mode (using existing gradient, but ensuring text is visible) */
+        html.dark #message-ok-btn {
+            color: #ffffff !important; /* Explicitly ensure white text on button */
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl transition-colors duration-300 relative">
+        <!-- Settings Controls (Top Right) -->
+        <div id="settings-controls" class="absolute top-4 right-4 flex space-x-2">
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out hover:scale-110">
+                <!-- Sun icon (default: shown in light mode) -->
+                <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1m-16 0H3m15.325-7.325l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l.707-.707M6.343 6.343l-.707-.707"></path>
+                </svg>
+                <!-- Moon icon (hidden by default, shown in dark mode) -->
+                <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+            <!-- Sound Toggle -->
+            <button id="sound-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out transform hover:scale-110">
+                <!-- Speaker icon (default: shown when sound is on) -->
+                <svg id="speaker-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9l1.414-1.414M7.05 18.95a5 5 0 010-7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <!-- Mute icon (hidden by default, shown when sound is off) -->
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Start screen -->
+        <div id="start-screen" class="text-center p-6 space-y-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">국제조세조정 퀴즈 대작전! 🕵️‍♀️</h1>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">몇 문제 풀어볼까? 숫자 버튼을 눌러줘! 👇</p>
+            <div class="space-y-4">
+                <!-- Start 10 questions button with pastel gradient -->
+                <button id="start-10-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    10문제 도전! 🚀
+                </button>
+                <!-- Start 20 questions button with pastel gradient -->
+                <button id="start-20-btn" class="w-full bg-gradient-to-r from-green-200 to-green-400 hover:from-green-300 hover:to-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    20문제 용감하게! 🌟
+                </button>
+                <!-- Start 40 questions button with pastel gradient -->
+                <button id="start-40-btn" class="w-full bg-gradient-to-r from-purple-200 to-purple-400 hover:from-purple-300 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    40문제 척척박사! 🌈
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quiz-screen" class="hidden w-full">
+            <!-- Quiz header: Question number, score, and Timer -->
+            <div id="quiz-header" class="flex justify-between items-center w-full mb-6">
+                <p id="question-count" class="text-lg font-semibold text-gray-700 dark:text-gray-300">문제 0 / 0</p>
+                <p id="timer-display" class="text-lg font-semibold text-gray-700 dark:text-gray-300">00:00</p>
+                <p id="score-display" class="text-lg font-semibold text-blue-600 dark:text-blue-400">별 점수: 0 ✨</p>
+            </div>
+
+            <!-- Question text -->
+            <p id="question-text" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6"></p>
+
+            <!-- Choices area -->
+            <div id="question-choices-area" class="w-full space-y-4 mb-6">
+                <!-- Choices will be dynamically inserted here -->
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            </div>
+
+            <!-- Feedback and explanation area -->
+            <div id="feedback-explanation-area" class="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
+            </div>
+
+            <!-- Quiz control buttons -->
+            <div id="quiz-controls" class="w-full flex justify-between mt-6">
+                <!-- Check Answer / Next Question button with pastel gradient -->
+                <button id="check-next-btn" class="bg-gradient-to-r from-indigo-200 to-indigo-400 hover:from-indigo-300 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    다음 문제로 Go! 👉
+                </button>
+                <!-- End Early button with pastel gradient -->
+                <button id="end-early-btn" class="bg-gradient-to-r from-red-200 to-red-400 hover:from-red-300 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    퀴즈 이제 그만! 멈춰! ✋
+                </button>
+            </div>
+        </div>
+
+        <!-- End quiz screen -->
+        <div id="end-quiz-screen" class="text-center p-6 space-y-4 hidden w-full">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">퀴즈 끝! 정말 멋진 도전이었어! ✨</h2>
+            <p id="final-score" class="text-2xl text-blue-600 dark:text-blue-400 font-bold mb-6">최종 점수: 0점</p>
+            <div id="end-quiz-buttons-area" class="space-y-4">
+                <!-- Restart Full Quiz button with pastel gradient -->
+                <button id="restart-full-quiz-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음부터 다시! 🐥
+                </button>
+                <!-- Review Incorrect button with pastel gradient -->
+                <button id="review-incorrect-btn" class="w-full bg-gradient-to-r from-yellow-200 to-yellow-400 hover:from-yellow-300 hover:to-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    틀린 문제 복습! 🧠
+                </button>
+                <!-- Go To Home button with pastel gradient -->
+                <button id="go-to-home-btn" class="w-full bg-gradient-to-r from-gray-200 to-gray-400 hover:from-gray-300 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음 화면으로! 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom message box -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl text-center w-80">
+            <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100"></p>
+            <button id="message-ok-btn" class="bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg">좋아! 😊</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================ Cache DOM elements ============================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endQuizScreen = document.getElementById('end-quiz-screen');
+
+        const start10Button = document.getElementById('start-10-btn');
+        const start20Button = document.getElementById('start-20-btn');
+        const start40Button = document.getElementById('start-40-btn');
+
+        const quizHeader = document.getElementById('quiz-header');
+        const questionCount = document.getElementById('question-count');
+        const timerDisplay = document.getElementById('timer-display'); // Added timer display element
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const questionChoicesArea = document.getElementById('question-choices-area');
+        const feedbackExplanationArea = document.getElementById('feedback-explanation-area');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const quizControls = document.getElementById('quiz-controls');
+        const checkNextButton = document.getElementById('check-next-btn');
+        const endEarlyButton = document.getElementById('end-early-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const endQuizButtonsArea = document.getElementById('end-quiz-buttons-area'); // Added
+        const restartFullQuizButton = document.getElementById('restart-full-quiz-btn');
+        const reviewIncorrectButton = document.getElementById('review-incorrect-btn');
+        const goToHomeButton = document.getElementById('go-to-home-btn');
+
+        const settingsControls = document.getElementById('settings-controls'); // Settings button container
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+        const soundToggle = document.getElementById('sound-toggle');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const muteIcon = document.getElementById('mute-icon');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-btn');
+
+        // ============================ Global variables and quiz data ============================
+        let allQuizData = []; // Array to store all quiz data
+        let currentQuizData = []; // Array of questions for the current quiz session
+        let incorrectQuestions = []; // Array to store incorrect questions
+        let currentQuestionIndex = 0;
+        let score = 0; // Raw score (number of correct answers)
+        let selectedChoice = null; // Changed to store 'O' or 'X'
+        let isAnswerChecked = false; // Flag for answer check status
+        let quizTotalQuestions = 0; // Total number of questions for the current quiz session (set at start)
+        let isSoundEnabled = true; // Sound active status
+        let timer = 0; // Timer in seconds
+        let timerIntervalId = null; // ID to clear the interval
+
+        // Tone.js PolySynth (synthesizer that can play multiple notes simultaneously)
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+        // ============================ Custom message box functions ============================
+        /**
+         * Function to display a message to the user (replaces alert)
+         * @param {string} message - Text message to display
+         */
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide message box and remove event listener when 'OK' button is clicked
+            messageOkButton.addEventListener('click', hideMessage, { once: true });
+        }
+
+        /**
+         * Function to hide the message box
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // ============================ Sound effect functions ============================
+        /**
+         * Checks Tone.start() and Tone.Destination.mute status before playing sound
+         * @returns {Promise<void>}
+         */
+        async function ensureAudioContextAndSound() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            // Set Tone.Destination.mute based on isSoundEnabled status
+            Tone.Destination.mute = !isSoundEnabled;
+        }
+
+        /**
+         * Sound played when the answer is correct
+         */
+        async function playCorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C5", "8n"); // Play C5 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when the answer is incorrect
+         */
+        async function playIncorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C3", "8n"); // Play C3 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when quiz starts or restarts (uses chord)
+         */
+        async function playStartSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); // Short ascending chord (C Major)
+            }
+        }
+
+        /**
+         * Sound played when quiz ends (uses chord)
+         */
+        async function playEndSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["A3", "C4", "E4"], "4n"); // Short, low descending sound (A Minor)
+            }
+        }
+
+        /**
+         * Sound played on general button click or choice selection
+         */
+        async function playButtonClickSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("G4", "32n"); // Very short click sound
+            }
+        }
+
+        // ============================ Embed quiz data ============================
+        const internationalTaxQuizData = [
+            {
+                question: "국제조세조정에 관한 법률은 국제거래에서 발생하는 조세회피 및 이중과세의 방지를 위하여 필요한 사항을 규정함을 목적으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제1조(목적)에 명시된 법의 목적입니다."
+            },
+            {
+                question: "이 법에서 '국제거래'란 거주자와 비거주자 간의 거래 또는 내국법인과 외국법인 간의 거래를 말한다. (O/X)",
+                answer: "X",
+                explanation: "내국법인과 외국법인 간의 거래뿐만 아니라, 거주자와 비거주자 간의 거래, 내국법인의 국외사업장과 비거주자 간의 거래 등 다양한 국제거래를 포함합니다."
+            },
+            {
+                question: "이 법에서 '특수관계'란 당사자 일방이 다른 당사자의 의결권 있는 주식의 50% 이상을 직접 또는 간접으로 소유하고 있는 경우를 말한다. (O/X)",
+                answer: "X",
+                explanation: "특수관계는 실질적 지배관계, 임원 임면권 행사, 사업상 상호 의존 관계 등 다양한 기준을 포괄하여 판단합니다. 단순히 50% 이상 소유 여부로만 판단되지 않습니다."
+            },
+            {
+                question: "내국법인의 특수관계인인 비거주자가 해당 내국법인의 발행주식총수 또는 출자총액의 50% 이상을 직접 또는 간접으로 소유하고 있는 경우, 해당 내국법인은 이 법에서 정하는 특수관계인에 해당하지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "내국법인의 특수관계인인 비거주자가 해당 내국법인의 발행주식총수 또는 출자총액의 50% 이상을 직접 또는 간접으로 소유하고 있는 경우, 해당 내국법인 또한 특수관계인에 해당할 수 있습니다."
+            },
+            {
+                question: "이 법에서 '정상가격'이란 거주자와 특수관계 없는 자 간의 통상적인 거래에서 적용되거나 적용될 것으로 판단되는 가격을 말한다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제5조(정상가격의 정의)에 명시된 정상가격의 정의입니다."
+            },
+            {
+                question: "과세당국은 국제거래에서 거주자와 비거주자 간에 적용되는 가격이 정상가격보다 낮거나 높은 경우 정상가격을 기준으로 해당 거래의 소득금액을 조정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제4조(정상가격에 의한 과세조정)에 따라 과세당국은 정상가격 원칙을 적용하여 소득금액을 조정할 수 있습니다."
+            },
+            {
+                question: "정상가격 산출방법 중 비교가능 제3자 가격방법은 특수관계 없는 독립기업 간의 거래가격을 정상가격으로 보는 방법이다. (O/X)",
+                answer: "O",
+                explanation: "비교가능 제3자 가격방법(CUP)은 독립된 당사자 간의 유사 거래에서 적용되는 가격을 직접 비교하여 정상가격을 산출하는 방법입니다."
+            },
+            {
+                question: "재판매가격방법은 특수관계 없는 자에게 판매하는 가격에서 정상적인 이윤을 차감하여 정상가격을 산출하는 방법이다. (O/X)",
+                answer: "X",
+                explanation: "재판매가격방법은 재판매 가격에서 재판매자가 통상적으로 얻는 이윤을 차감하여 특수관계자로부터 구입한 자산의 정상가격을 산출하는 방법입니다."
+            },
+            {
+                question: "원가가산방법은 자산의 제조 또는 판매에 소요된 원가에 통상의 이윤을 가산하여 정상가격을 산출하는 방법이다. (O/X)",
+                answer: "O",
+                explanation: "원가가산방법(Cost Plus Method)은 자산의 제조, 판매 또는 용역 제공에 소요된 원가에 통상의 이윤을 가산하여 정상가격을 산출하는 방법입니다."
+            },
+            {
+                question: "이익분할방법은 특수관계거래와 관련하여 각 당사자가 실현한 결합이익을 합리적인 배부기준에 따라 배분하여 정상가격을 산출하는 방법이다. (O/X)",
+                answer: "O",
+                explanation: "이익분할방법(Profit Split Method)은 특수관계 거래를 통해 발생한 결합이익을 각 당사자의 기여도에 따라 합리적으로 배분하여 정상가격을 산출합니다."
+            },
+            {
+                question: "거래순이익률방법은 특수관계 없는 자 간의 거래에서 적용되는 순이익률을 이용하여 정상가격을 산출하는 방법이다. (O/X)",
+                answer: "O",
+                explanation: "거래순이익률방법(Transactional Net Margin Method)은 특수관계 없는 독립기업이 유사한 거래에서 얻는 순이익률을 비교하여 정상가격을 산출하는 방법입니다."
+            },
+            {
+                question: "정상가격 산출방법의 선택은 합리적인 기준에 따라 가장 합리적인 방법을 선택하여야 하며, 과세당국이 우선순위를 정하여 강제할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "국제조세조정에 관한 법률 시행령 제4조(정상가격 산출방법)에 따라 납세자가 합리적인 기준에 따라 가장 합리적인 방법을 선택해야 합니다. 과세당국이 일방적으로 우선순위를 강제할 수 없습니다."
+            },
+            {
+                question: "납세의무자는 정상가격 산출방법을 선택할 때 유사한 거래의 특성, 거래 당사자의 기능, 부담한 위험 등을 고려하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "정상가격 산출방법 선택 시 비교 대상 거래의 특성, 거래 당사자의 기능 분석, 부담한 위험, 사용된 자산 등을 종합적으로 고려해야 합니다."
+            },
+            {
+                question: "과세당국은 정상가격 산출방법을 적용할 때 독립기업 간의 거래 사례를 충분히 비교 분석하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "과세당국은 독립된 제3자 간의 거래 사례를 충분히 수집하고 비교 분석하여 정상가격을 결정해야 합니다."
+            },
+            {
+                question: "납세의무자가 정상가격 산출방법을 임의로 변경하여 과세당국에 신고할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 최초 선택한 정상가격 산출방법을 계속 적용해야 합니다. 다만, 합리적인 사유가 있는 경우 과세당국의 승인을 받아 변경할 수 있습니다."
+            },
+            {
+                question: "정상가격 산출을 위한 자료 제출 요구에 납세의무자가 정당한 사유 없이 불응하는 경우 과세당국은 추계조사할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제11조(자료제출의무) 위반 시 과세당국은 추계조사의 방식으로 정상가격을 결정할 수 있습니다."
+            },
+            {
+                question: "정상가격 조정에 따른 세액의 추징은 법인세법 또는 소득세법의 규정에 따라 이루어진다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률은 과세조정의 근거를 제공하며, 실제 세액 추징은 법인세법 또는 소득세법에 따라 이루어집니다."
+            },
+            {
+                question: "과세당국은 정상가격을 결정할 때 납세의무자에게 의견진술의 기회를 주어야 한다. (O/X)",
+                answer: "O",
+                explanation: "납세자의 권익 보호를 위해 정상가격 결정 과정에서 납세의무자에게 의견진술의 기회를 부여해야 합니다."
+            },
+            {
+                question: "정상가격 조정에 따른 과세처분에 불복하는 경우 조세심판원이나 행정소송을 통해 다툴 수 있다. (O/X)",
+                answer: "O",
+                explanation: "정상가격 조정에 대한 과세처분은 일반적인 세금 부과 처분과 동일하게 불복 절차를 통해 다툴 수 있습니다."
+            },
+            {
+                question: "국제거래의 가격이 정상가격에 미달하거나 초과하는 경우라도, 해당 거래가 특수관계인의 지배 없이 이루어진 것임이 입증되면 과세조정을 하지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "정상가격 원칙은 특수관계인 간의 거래에 적용되는 것이며, 특수관계인의 지배 여부와 무관하게 국제거래의 가격이 정상가격을 벗어나면 과세조정 대상이 됩니다."
+            },
+            {
+                question: "납세자가 정상가격 산출방법을 선택하여 제출하지 않은 경우 과세당국은 임의로 정상가격 산출방법을 선택하여 과세조정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제5조 제2항에 따라 납세자가 정상가격 산출방법을 제출하지 않으면 과세당국이 합리적인 방법을 선택하여 과세조정할 수 있습니다."
+            },
+            {
+                question: "비교가능한 거래가 없는 경우에도 과세당국은 통계 자료를 활용하여 정상가격을 추정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "비교가능한 직접적인 거래가 없는 경우에도 유사한 사업 또는 산업의 통계 자료 등을 활용하여 정상가격을 추정할 수 있습니다."
+            },
+            {
+                question: "정상가격 산출방법 적용 시 비교 대상 기업의 수익성 편차가 크더라도 평균치를 사용하여 정상가격을 결정할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "비교 대상 기업의 수익성 편차가 큰 경우, 단순 평균치를 사용하는 것은 합리적이지 않을 수 있으며, 특이치를 제거하거나 추가적인 분석을 통해 편차를 조정해야 합니다."
+            },
+            {
+                question: "무형자산의 국제거래에 대한 정상가격은 해당 무형자산의 개발, 유지, 보호 및 활용에 기여한 당사자의 기여도에 따라 배분하여 산정한다. (O/X)",
+                answer: "O",
+                explanation: "무형자산의 정상가격은 관련 당사자들의 기능, 부담한 위험, 기여도 등을 종합적으로 고려하여 이익분할방법 등을 통해 산정합니다."
+            },
+            {
+                question: "용역 제공 거래의 정상가격은 원칙적으로 원가가산방법 또는 거래순이익률방법을 적용하여 산정한다. (O/X)",
+                answer: "O",
+                explanation: "용역거래의 특성을 고려할 때, 원가가산방법이나 거래순이익률방법이 가장 합리적인 정상가격 산출방법으로 우선적으로 적용됩니다."
+            },
+            {
+                question: "국외특수관계인에게 자금을 대여하는 경우, 정상가격에 해당하는 이자율을 적용하지 아니하면 과세당국은 정상 이자율을 적용하여 소득금액을 조정할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제6조(국외특수관계인과의 자금거래 과세조정)에 따라 정상 이자율을 적용하지 않은 자금 거래에 대해 과세조정이 가능합니다."
+            },
+            {
+                question: "정상 이자율은 금융기관의 대출금리 또는 이와 유사한 성격의 금리를 기준으로 한다. (O/X)",
+                answer: "O",
+                explanation: "정상 이자율은 독립된 당사자 간의 유사한 자금 거래에서 적용되는 이자율을 기준으로 하며, 이는 금융기관의 금리를 참고하여 결정될 수 있습니다."
+            },
+            {
+                question: "국외특수관계인으로부터 자금을 차입하는 경우에도 정상 이자율을 초과하는 부분은 손금에 산입하지 아니할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "정상 이자율을 초과하는 이자 비용은 과도한 비용으로 보아 손금 불산입되어 소득금액이 조정될 수 있습니다."
+            },
+            {
+                question: "정상 이자율은 대여 또는 차입 당시의 시장 상황을 고려하여 결정한다. (O/X)",
+                answer: "O",
+                explanation: "정상 이자율은 해당 거래 당시의 경제 상황, 시장 금리, 채무자의 신용도 등을 종합적으로 고려하여 결정됩니다."
+            },
+            {
+                question: "국외특수관계인과의 자금거래에서 실제 지급하거나 수령한 이자율이 정상 이자율의 50% 미만이거나 150%를 초과하는 경우에는 과세조정 대상이 된다. (O/X)",
+                answer: "X",
+                explanation: "특정 퍼센트 범위(예: 50% 미만, 150% 초과)는 법률에 명시된 특정 기준이 아닙니다. 정상 이자율 원칙에 따라 합리적인 범위를 벗어나는 모든 경우 과세조정 대상이 될 수 있습니다."
+            },
+            {
+                question: "국외특수관계인으로부터 제공받는 용역에 대한 대가가 정상가격에 미달하거나 초과하는 경우 과세조정의 대상이 된다. (O/X)",
+                answer: "O",
+                explanation: "용역 거래 또한 정상가격 원칙의 적용 대상이며, 대가가 정상가격을 벗어나면 과세조정 대상이 됩니다."
+            },
+            {
+                question: "용역거래의 정상가격은 원가가산방법 또는 거래순이익률방법을 우선적으로 적용한다. (O/X)",
+                answer: "O",
+                explanation: "용역거래의 특성상 원가 및 이윤율을 기준으로 하는 원가가산방법과 거래순이익률방법이 비교적 합리적인 정상가격 산출방법으로 간주되어 우선 적용됩니다."
+            },
+            {
+                question: "용역거래에 있어 원가에 가산하는 이윤율은 용역의 종류 및 특성 등을 고려하여 합리적인 범위 내에서 결정한다. (O/X)",
+                answer: "O",
+                explanation: "용역의 성격, 산업 특성, 시장 상황 등을 고려하여 합리적인 이윤율을 산정해야 합니다."
+            },
+            {
+                question: "국외특수관계인으로부터 받은 용역이 국내 사업 활동에 직접적으로 기여하지 않는 경우에도 대가지급이 정당하면 손금으로 인정될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "용역의 대가가 정당하더라도 국내 사업 활동에 직접적인 기여가 없거나 사업 관련성이 부족한 경우, 해당 용역에 대한 대가는 손금으로 인정되지 않거나 과세조정될 수 있습니다."
+            },
+            {
+                question: "용역거래의 정상가격 산정 시, 용역의 종류와 특성, 용역 제공에 소요된 원가, 통상의 이윤 등을 종합적으로 고려하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "정상가격 산정은 해당 거래의 모든 관련 요소를 종합적으로 분석하여 이루어져야 합니다."
+            },
+            {
+                question: "국외특수관계인에게 지식재산권을 사용하게 하고 받는 대가가 정상가격에 미달하는 경우 과세조정이 가능하다. (O/X)",
+                answer: "O",
+                explanation: "지식재산권 사용료 또한 정상가격 원칙의 적용 대상이므로, 미달하거나 초과하는 경우 과세조정될 수 있습니다."
+            },
+            {
+                question: "지식재산권 거래의 정상가격은 비교가능 제3자 가격방법을 우선적으로 적용한다. (O/X)",
+                answer: "X",
+                explanation: "지식재산권 거래는 그 특성상 비교가능 제3자 가격방법을 적용하기 어려운 경우가 많습니다. 이익분할방법, 거래순이익률방법 등 다양한 방법을 종합적으로 고려하여 가장 합리적인 방법을 선택합니다."
+            },
+            {
+                question: "지식재산권 사용료의 정상가격은 해당 지식재산권의 경제적 가치, 사용 범위, 유사한 거래의 조건 등을 고려하여 산정한다. (O/X)",
+                answer: "O",
+                explanation: "지식재산권의 가치 평가에는 해당 자산의 수익 창출 능력, 기술적 우수성, 시장 내 경쟁력 등이 중요한 고려 요소입니다."
+            },
+            {
+                question: "국외특수관계인으로부터 지식재산권을 무상으로 제공받는 경우에도 정상가격에 상당하는 사용료를 익금에 산입할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "무상으로 제공받았더라도 독립된 당사자 간에는 대가가 오갔을 것이므로, 정상가격에 해당하는 사용료를 익금(수익)에 산입하여 과세조정할 수 있습니다."
+            },
+            {
+                question: "지식재산권의 개발 비용이 특정 당사자에게만 전적으로 귀속되는 경우에도 공동 개발 약정이 없으면 모든 당사자에게 개발 비용을 배분할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "공동 개발 약정이 없는 경우, 개발에 대한 기여가 없는 당사자에게 개발 비용을 배분할 수 없습니다. 비용은 해당 개발에 실질적으로 기여한 당사자에게 귀속되는 것이 원칙입니다."
+            },
+            {
+                question: "자산의 양도 또는 취득 거래에서 정상가격보다 낮거나 높은 가격이 적용된 경우 과세조정이 가능하다. (O/X)",
+                answer: "O",
+                explanation: "자산 거래 또한 국제거래의 한 유형으로 정상가격 원칙이 적용됩니다."
+            },
+            {
+                question: "자산의 양도 거래에서 정상가격에 미달하는 가격으로 양도하여 소득이 감소한 경우, 그 감소한 소득에 상당하는 금액은 익금에 산입한다. (O/X)",
+                answer: "O",
+                explanation: "소득이 과소하게 계상된 경우, 정상가격과의 차액을 익금에 산입하여 소득을 증액 조정합니다."
+            },
+            {
+                question: "자산의 취득 거래에서 정상가격을 초과하는 가격으로 취득하여 비용이 과다하게 계상된 경우, 그 초과하는 금액은 손금에 산입하지 아니한다. (O/X)",
+                answer: "O",
+                explanation: "비용이 과다하게 계상된 경우, 정상가격과의 차액을 손금 불산입하여 소득을 증액 조정합니다."
+            },
+            {
+                question: "증권의 취득 또는 양도 거래에서도 정상가격 원칙이 적용된다. (O/X)",
+                answer: "O",
+                explanation: "주식, 채권 등 증권의 거래도 국제거래에 해당하며 정상가격 원칙이 적용될 수 있습니다."
+            },
+            {
+                question: "국외특수관계인과의 상품 또는 제품의 매매 거래에도 정상가격 원칙이 적용된다. (O/X)",
+                answer: "O",
+                explanation: "상품 및 제품 매매는 가장 일반적인 국제거래 유형이며, 당연히 정상가격 원칙이 적용됩니다."
+            },
+            {
+                question: "과소자본세제는 내국법인이 국외특수관계인으로부터 일정 한도를 초과하는 차입금을 조달하여 과도한 이자 비용을 손금 산입하는 것을 제한하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "과소자본세제(Thin Capitalization Rule)는 과도한 차입을 통한 이자 비용 손금 산입으로 세금을 회피하는 것을 방지하기 위한 제도입니다."
+            },
+            {
+                question: "과소자본세제 적용 대상 채무의 범위에는 국외특수관계인으로부터의 차입금 외에 제3자로부터 차입한 자금 중 국외특수관계인이 지급보증한 채무도 포함된다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제14조(과소자본세제)에 따라 지급보증 등 우회적인 방식으로 조달된 채무도 과소자본세제 적용 대상에 포함됩니다."
+            },
+            {
+                question: "과소자본세제에서 손금 불산입되는 이자 비용은 내국법인의 자기자본의 3배를 초과하는 차입금에 대한 이자 비용이다. (O/X)",
+                answer: "X",
+                explanation: "국제조세조정에 관한 법률 제14조에 따라 원칙적으로 자기자본의 2배(금융업 등은 3배)를 초과하는 차입금에 대한 이자 비용이 손금 불산입됩니다."
+            },
+            {
+                question: "자기자본은 대차대조표상 자본총액을 기준으로 한다. (O/X)",
+                answer: "X",
+                explanation: "과소자본세제 적용을 위한 자기자본은 세무상 조정된 자기자본을 의미하며, 단순히 회계상 자본총액과 다를 수 있습니다."
+            },
+            {
+                question: "과소자본세제 적용으로 손금 불산입된 이자 비용은 다음 사업연도 이후로 이월하여 손금 산입할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "과소자본세제에 따라 손금 불산입된 이자 비용은 원칙적으로 다음 사업연도로 이월되지 아니합니다."
+            },
+            {
+                question: "내국법인의 차입금이 국내특수관계인으로부터의 차입금인 경우에는 과소자본세제가 적용되지 아니한다. (O/X)",
+                answer: "O",
+                explanation: "과소자본세제는 '국외' 특수관계인과의 거래에 적용되는 제도입니다."
+            },
+            {
+                question: "과소자본세제 적용 시 차입금에 대한 이자 비용은 선순위 채무의 이자 비용보다 후순위로 손금 불산입된다. (O/X)",
+                answer: "O",
+                explanation: "과소자본세제에 따른 이자 비용 손금 불산입은 다른 세법상의 손금 불산입 규정이나 채무의 우선순위와 별개로 적용될 수 있습니다."
+            },
+            {
+                question: "과소자본세제는 금융기관이 아닌 일반 법인에 대해서만 적용된다. (O/X)",
+                answer: "X",
+                explanation: "일정 요건을 충족하는 경우 금융기관도 과소자본세제 적용 대상이 될 수 있습니다."
+            },
+            {
+                question: "과소자본세제 적용 시 손금 불산입되는 이자 비용은 소득처분하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "손금 불산입된 금액은 귀속자에 따라 배당, 상여, 기타소득 등으로 소득처분됩니다."
+            },
+            {
+                question: "과소자본세제는 해당 사업연도 종료일 현재 채무가 존재하는 경우에 한하여 적용된다. (O/X)",
+                answer: "X",
+                explanation: "사업연도 중의 채무 발생 및 상환 내역도 과소자본세제 적용 시 고려될 수 있습니다."
+            },
+            {
+                question: "과소자본세제 적용을 위한 자기자본 계산 시 결손금이 발생한 경우 자본총액에서 차감하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "세무상 자기자본을 계산할 때 결손금은 자본을 감소시키는 요소로 반영됩니다."
+            },
+            {
+                question: "과소자본세제는 내국법인의 해외 자회사로부터의 차입금에는 적용되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "해외 자회사도 내국법인의 국외특수관계인에 해당하므로, 해외 자회사로부터의 차입금에도 과소자본세제가 적용될 수 있습니다."
+            },
+            {
+                question: "국외특수관계인이 내국법인의 주식 50%를 소유하고 있더라도 내국법인이 채무의 원금 및 이자를 상환할 능력이 충분하다면 과소자본세제를 적용하지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "상환 능력은 과소자본세제 적용 여부를 결정하는 직접적인 요건이 아닙니다. 법률에 명시된 자기자본 대비 차입금 비율 등 요건 충족 시 적용됩니다."
+            },
+            {
+                question: "과소자본세제는 특정 사업연도에 한하여 적용되며, 다음 사업연도에는 재계산된다. (O/X)",
+                answer: "O",
+                explanation: "과소자본세제는 각 사업연도별로 자기자본과 차입금 규모를 기준으로 재계산되어 적용됩니다."
+            },
+            {
+                question: "과소자본세제는 조세피난처를 통한 자본 유출을 방지하기 위한 제도이다. (O/X)",
+                answer: "O",
+                explanation: "과소자본세제는 다국적 기업이 이자 비용을 통해 세금이 낮은 국가로 소득을 이전하는 것을 방지하는 데 목적이 있습니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도는 내국인이 조세피난처에 설립한 특정외국법인에 유보된 소득에 대하여 배당받은 것으로 간주하여 과세하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제17조(특정외국법인의 유보소득 배당간주)에 명시된 제도 목적입니다. 이는 조세피난처를 이용한 과세회피를 방지하기 위함입니다."
+            },
+            {
+                question: "특정외국법인이란 실질적인 사업 활동을 하지 아니하고 조세피난처에 설립된 외국법인을 말한다. (O/X)",
+                answer: "O",
+                explanation: "페이퍼컴퍼니 등 실질 사업 활동이 없는 외국법인이 주요 규제 대상입니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도는 내국인이 특정외국법인의 발행주식총수 또는 출자총액의 50% 이상을 직접 또는 간접으로 소유하고 있는 경우에 적용된다. (O/X)",
+                answer: "X",
+                explanation: "국제조세조정에 관한 법률 제17조 제1항에 따라 내국인이 특정외국법인의 발행주식총수 또는 출자총액의 10% 이상을 직접 또는 간접으로 소유하고 있는 경우에 적용됩니다. 50%는 과점주주 등 다른 기준에서 사용될 수 있습니다."
+            },
+            {
+                question: "특정외국법인이 실질적인 사업 활동을 하는 것으로 인정되는 경우에도 유보소득 배당간주 제도가 적용될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "특정외국법인이 조세피난처에 위치하더라도 실질적인 사업 활동(물리적 사업장, 인적 설비 등)을 하는 것으로 인정되는 경우 유보소득 배당간주 규정의 적용이 배제됩니다."
+            },
+            {
+                question: "특정외국법인의 유보소득은 해당 사업연도 종료일 현재 유보된 소득을 말한다. (O/X)",
+                answer: "O",
+                explanation: "특정외국법인의 유보소득 배당간주 제도는 해당 사업연도 종료일 기준으로 법인의 유보된 소득을 계산하여 배당으로 간주합니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도가 적용되는 경우, 내국인은 해당 외국법인으로부터 실제 배당을 받지 않았더라도 배당소득세를 납부하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "실제 배당 수령 여부와 관계없이 법률에 따라 배당받은 것으로 간주하여 과세합니다."
+            },
+            {
+                question: "특정외국법인의 유보소득을 배당으로 간주하는 경우, 외국 납부 세액 공제는 적용되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "일정 요건을 충족하는 경우, 특정외국법인이 해외에서 납부한 세액에 대해 외국 납부 세액 공제를 적용받을 수 있습니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도는 내국인의 국외 자산 은닉을 방지하기 위한 목적도 있다. (O/X)",
+                answer: "O",
+                explanation: "이 제도는 국외에 자산을 은닉하거나 소득을 유보하여 국내 과세를 회피하는 것을 방지하는 목적을 가지고 있습니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 계산 시 해당 법인의 조세조약 상대방 국가에서 발생한 소득은 제외한다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 특정외국법인의 모든 유보소득이 계산 대상에 포함되며, 조세조약 상대방 국가 여부가 자동적인 제외 기준이 되지는 않습니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 규정은 실제 배당받은 시점에 적용된다. (O/X)",
+                answer: "X",
+                explanation: "실제 배당 시점이 아니라, 특정외국법인의 사업연도 종료일 등 법률에 정해진 시점에 배당된 것으로 간주합니다."
+            },
+            {
+                question: "특정외국법인의 유보소득에 대한 배당간주액은 내국인의 다른 소득과 합산하여 종합소득세 또는 법인세가 과세된다. (O/X)",
+                answer: "O",
+                explanation: "배당으로 간주된 소득은 내국인의 다른 소득과 합산하여 국내 세법에 따라 과세됩니다."
+            },
+            {
+                question: "특정외국법인에서 발생한 결손금은 유보소득 계산 시 차감할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "유보소득 계산 시 해당 특정외국법인의 결손금은 유보소득에서 차감되어 과세대상 금액을 줄일 수 있습니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도는 내국인이 역외 탈세를 목적으로 설립한 페이퍼컴퍼니를 규제하는 데 효과적이다. (O/X)",
+                answer: "O",
+                explanation: "이 제도의 주요 목적 중 하나가 페이퍼컴퍼니를 이용한 역외 탈세 방지입니다."
+            },
+            {
+                question: "특정외국법인의 유보소득 배당간주 제도의 적용 대상인 특정외국법인은 국내 법인세법에 따른 사업자등록을 한 법인을 말한다. (O/X)",
+                answer: "X",
+                explanation: "특정외국법인은 국내에 사업자등록을 하지 않은 '해외에 설립된 외국법인'을 의미합니다."
+            },
+            {
+                question: "내국법인이 특정외국법인의 주식을 간접 소유하는 경우에도 유보소득 배당간주 제도가 적용될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "직접 소유뿐만 아니라 여러 단계의 법인을 통한 간접 소유의 경우에도 지분율 요건 충족 시 적용됩니다."
+            },
+            {
+                question: "거주자가 비거주자에게 국외에 있는 재산을 증여하는 경우에도 증여세가 과세될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제21조(국외 증여재산에 대한 증여세 과세특례)에 따라 거주자가 국외 재산을 증여하는 경우에도 국내 증여세가 과세될 수 있습니다."
+            },
+            {
+                question: "상속개시일 현재 피상속인 또는 상속인이 비거주자인 경우에도 국내에 있는 재산에 대해서는 상속세가 과세될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "피상속인 또는 상속인의 거주자/비거주자 여부와 관계없이 국내에 있는 재산은 국내 상속세 과세 대상이 됩니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 국외 증여 및 상속에 대한 과세 시 국내 상속세 및 증여세법의 특별규정을 우선적으로 적용한다. (O/X)",
+                answer: "O",
+                explanation: "국외 증여 및 상속에 대한 특별 규정으로서 국제조세조정에 관한 법률이 국내 상속세 및 증여세법에 우선하여 적용됩니다."
+            },
+            {
+                question: "국외에 있는 재산에 대한 증여세 또는 상속세 과세 시 외국에서 납부한 세액은 일정 요건 하에 세액공제될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "이중과세 방지를 위해 외국에서 납부한 상속세 또는 증여세에 대해 외국 납부 세액 공제가 적용될 수 있습니다."
+            },
+            {
+                question: "비거주자가 거주자에게 국외에 있는 재산을 증여하는 경우에는 증여세가 과세되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "국내 거주자가 국외 재산을 증여받는 경우에도 증여세가 과세될 수 있습니다. 증여세는 수증자(증여받는 자)를 기준으로 과세합니다."
+            },
+            {
+                question: "외국에서 상속 또는 증여가 발생한 경우, 국내 세법에 따라 상속세 또는 증여세가 부과될 때 국내외 재산 가액을 합산하여 과세한다. (O/X)",
+                answer: "O",
+                explanation: "국내 거주자에 대한 과세는 국내외 모든 재산에 대해 합산하여 과세하는 원칙(거주지주의)이 적용됩니다."
+            },
+            {
+                question: "국외재산에 대한 상속세 또는 증여세 과세 시 재산의 평가는 상속개시일 또는 증여일 현재의 현지 시가에 따른다. (O/X)",
+                answer: "O",
+                explanation: "국외 재산의 평가는 해당 재산이 소재하는 국가의 시가 등을 기준으로 평가합니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 상속세 및 증여세 회피를 목적으로 한 국외 재산 이전을 방지하기 위한 규정을 포함한다. (O/X)",
+                answer: "O",
+                explanation: "이 제도는 국제적인 상속세 및 증여세 회피를 방지하고 국내 과세권을 확보하기 위함입니다."
+            },
+            {
+                question: "상속개시일 현재 피상속인이 외국 국적을 가지고 있었더라도 국내에 주소를 둔 경우에는 국내 상속세법에 따라 상속세가 과세된다. (O/X)",
+                answer: "O",
+                explanation: "상속세 과세는 국적보다는 피상속인의 국내 '주소' 또는 '거소' 여부를 중요하게 판단합니다."
+            },
+            {
+                question: "국외에 있는 부동산에 대한 상속세 또는 증여세 과세 시 해당 부동산이 소재하는 국가의 법률에 따라 취득한 재산권은 인정되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "해당 국가의 법률에 따라 적법하게 취득한 재산권은 국내 세법 적용 시에도 인정됩니다. 다만, 국내 세법에 따라 평가하고 과세합니다."
+            },
+            {
+                question: "상호합의절차는 조세조약의 해석 또는 적용에 관하여 과세당국 간에 이견이 있는 경우 이를 해결하기 위한 절차이다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제23조(상호합의절차)에 명시된 상호합의절차의 정의입니다."
+            },
+            {
+                question: "납세의무자는 이중과세가 발생하거나 발생할 우려가 있는 경우 상호합의절차를 신청할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "납세자는 이중과세 문제를 해결하기 위해 상호합의절차를 신청할 수 있는 권리를 가집니다."
+            },
+            {
+                question: "상호합의절차는 세무조사 통지를 받은 이후에만 신청할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "세무조사 통지 전에도 이중과세의 우려가 있는 경우 사전적으로 상호합의절차를 신청할 수 있습니다."
+            },
+            {
+                question: "상호합의절차의 신청 기한은 이중과세가 발생한 날부터 3년 이내이다. (O/X)",
+                answer: "X",
+                explanation: "상호합의절차의 신청 기한은 조세조약에 따라 상이하며, 일반적으로 이중과세 발생 사실을 인지한 날 또는 과세통보일로부터 3년 이내인 경우가 많습니다. '이중과세가 발생한 날'은 모호할 수 있습니다."
+            },
+            {
+                question: "상호합의절차는 납세의무자가 직접 다른 국가의 과세당국과 협의하여 진행한다. (O/X)",
+                answer: "X",
+                explanation: "상호합의절차는 각 국가의 과세당국(권한 있는 당국)이 납세의무자를 대리하여 상호 협의를 통해 진행합니다."
+            },
+            {
+                question: "상호합의절차의 합의 내용은 납세의무자에게 법적 구속력을 가진다. (O/X)",
+                answer: "X",
+                explanation: "상호합의절차의 합의 내용은 납세의무자가 그 내용을 수락하는 경우에 한하여 납세의무자에게 구속력을 가집니다."
+            },
+            {
+                question: "상호합의절차가 진행 중인 경우에도 과세처분은 유효하게 유지된다. (O/X)",
+                answer: "O",
+                explanation: "상호합의절차 진행 자체가 과세처분의 효력을 정지시키지는 않으며, 합의가 이루어진 후에 처분이 변경됩니다."
+            },
+            {
+                question: "상호합의절차는 조세조약이 체결된 국가 간에만 적용될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "상호합의절차는 조세조약에 근거하여 운영되므로, 조세조약이 체결된 국가 간에만 적용 가능합니다."
+            },
+            {
+                question: "상호합의절차를 통해 이중과세 문제가 해결되면 과세당국은 그 내용에 따라 과세처분을 변경하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "합의 내용에 따라 과세처분을 변경함으로써 이중과세가 실질적으로 해소됩니다."
+            },
+            {
+                question: "상호합의절차는 납세의무자의 권리 구제 절차 중 하나이다. (O/X)",
+                answer: "O",
+                explanation: "상호합의절차는 납세자가 국제적인 이중과세 문제를 해결하고 권리를 구제받을 수 있는 중요한 제도입니다."
+            },
+            {
+                question: "상호합의절차 진행 중 납세의무자가 추가 자료 제출을 거부하면 상호합의가 중단될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "상호합의절차는 당사국 과세당국 간의 상호 협력이 필수적이며, 납세자의 자료 제출 협조가 이루어지지 않으면 절차 진행이 어려울 수 있습니다."
+            },
+            {
+                question: "상호합의절차는 복수국적자의 소득세 문제 해결에도 활용될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "복수국적자의 거주지국 판정 문제 등 소득세 관련 이중과세 문제 해결에도 상호합의절차가 활용될 수 있습니다."
+            },
+            {
+                question: "상호합의절차를 신청한 경우라도 세무조사가 즉시 중단되는 것은 아니다. (O/X)",
+                answer: "O",
+                explanation: "상호합의 신청만으로 세무조사가 자동적으로 중단되지는 않으나, 과세당국은 절차의 효율성을 위해 조정할 수 있습니다."
+            },
+            {
+                question: "상호합의절차는 과세당국 간의 비공식적인 협의 절차이다. (O/X)",
+                answer: "X",
+                explanation: "상호합의절차는 조세조약에 명시된 공식적인 절차이며, 비공식적인 협의가 아닙니다."
+            },
+            {
+                question: "상호합의절차의 결과는 공개되지 않는 것이 원칙이다. (O/X)",
+                answer: "O",
+                explanation: "납세자의 과세 정보 보호를 위해 상호합의절차의 결과는 공개되지 않는 것이 원칙입니다."
+            },
+            {
+                question: "국제거래를 하는 내국법인은 납세지 관할세무서장에게 국제거래명세서를 제출하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제11조(자료제출의무)에 따라 국제거래명세서 제출 의무가 있습니다."
+            },
+            {
+                question: "국제거래명세서는 매 사업연도 종료일이 속하는 달의 말일부터 3개월 이내에 제출하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "법인세 신고 기한과 동일하게 매 사업연도 종료일이 속하는 달의 말일부터 3개월(일반 법인 기준)이 아닌, 4개월 이내에 제출해야 합니다. (법인세 신고 기한에 맞춰 제출)"
+            },
+            {
+                question: "국제거래명세서에는 국외특수관계인의 명칭, 소재지, 국제거래의 종류 및 금액 등을 기재하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국제거래명세서에는 국제거래의 상세 내역이 포함되어야 합니다."
+            },
+            {
+                question: "과세당국은 납세의무자에게 정상가격 산출에 필요한 자료를 제출하도록 요구할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "과세당국은 정상가격 산출 및 검토를 위해 필요한 자료 제출을 요구할 수 있는 권한이 있습니다."
+            },
+            {
+                question: "자료 제출 요구에 정당한 사유 없이 불응하는 경우 과태료가 부과될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제11조 및 제112조(벌칙)에 따라 자료 제출 의무 불이행 시 제재가 부과될 수 있습니다."
+            },
+            {
+                question: "자료 제출 요구를 받은 납세의무자는 요구받은 날부터 30일 이내에 자료를 제출하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "자료 제출 기한은 법률 또는 시행령에서 정한 바에 따르며, 통상 30일이 아닌 일정 기간 내에 제출하도록 요구할 수 있습니다."
+            },
+            {
+                question: "과세당국은 자료 제출 요구 시 제출 대상 자료의 범위와 제출 기한을 명시하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "납세자의 예측 가능성 및 권익 보호를 위해 명확한 자료 제출 요구가 필요합니다."
+            },
+            {
+                question: "자료 제출 요구에 불응하여 과세처분이 이루어진 경우, 납세의무자는 해당 자료를 제출하여 불복할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "불복 절차에서는 과세 처분의 부당함을 입증하기 위해 관련 자료를 제출할 수 있습니다."
+            },
+            {
+                question: "해외 현지법인 명세서는 해외 자회사 등에 대한 투자 내역 및 재무 현황 등을 기재하는 서류이다. (O/X)",
+                answer: "O",
+                explanation: "국외 현지법인 명세서는 내국인의 해외 투자 실태를 파악하기 위한 목적입니다."
+            },
+            {
+                question: "해외 현지법인 명세서 제출 의무는 내국법인뿐만 아니라 거주자에게도 적용될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "해외 현지법인에 투자한 내국법인 및 거주자 모두에게 적용될 수 있습니다."
+            },
+            {
+                question: "해외 현지법인 명세서는 매 사업연도 종료일이 속하는 달의 말일부터 6개월 이내에 제출하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "해외 현지법인 명세서 또한 법인세 신고 기한과 동일하게 매 사업연도 종료일이 속하는 달의 말일부터 6개월(개인) 또는 4개월(법인) 이내에 제출해야 합니다."
+            },
+            {
+                question: "통합기업 보고서는 다국적 기업 그룹에 대한 전 세계 소득 및 납부 세액 정보를 포함한다. (O/X)",
+                answer: "O",
+                explanation: "통합기업 보고서(Master File)는 다국적 기업 그룹의 글로벌 사업 구조 및 이전가격 정책에 대한 개괄적인 정보를 제공합니다."
+            },
+            {
+                question: "통합기업 보고서는 연간 매출액이 일정 금액 이상인 다국적 기업 그룹의 최종 모회사만이 제출 의무를 가진다. (O/X)",
+                answer: "O",
+                explanation: "통합기업 보고서 및 개별국 보고서 제출 의무는 특정 규모 이상의 다국적 기업 그룹의 최종 모회사에게 부여됩니다."
+            },
+            {
+                question: "통합기업 보고서는 원칙적으로 국문으로 작성하여 제출하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "통합기업 보고서는 영문으로 작성하여 제출하는 것이 원칙입니다. 다만, 국문 번역본을 요구할 수 있습니다."
+            },
+            {
+                question: "개별국 보고서는 각 국가별 소득, 세전 이익, 납부 세액, 직원 수 등 상세 정보를 포함한다. (O/X)",
+                answer: "O",
+                explanation: "개별국 보고서(Country-by-Country Report)는 다국적 기업 그룹의 각 구성 법인이 활동하는 국가별로 상세한 재무 및 세무 정보를 제공합니다."
+            },
+            {
+                question: "개별국 보고서는 통합기업 보고서 제출 의무가 있는 기업 그룹의 구성원 법인 중 일정 요건을 충족하는 법인만 제출한다. (O/X)",
+                answer: "O",
+                explanation: "최종 모회사 외에 특정 요건을 충족하는 국내 구성원 법인에게도 개별국 보고서 제출 의무가 부여될 수 있습니다."
+            },
+            {
+                question: "국제거래 자료 제출 의무를 위반한 경우, 가산세가 부과될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "자료 제출 의무 위반 시 법률에 따른 가산세가 부과됩니다."
+            },
+            {
+                question: "자료 제출 의무 면제 대상이 되는 국제거래는 소액 거래 등에 한정된다. (O/X)",
+                answer: "O",
+                explanation: "행정 부담을 줄이기 위해 일정 금액 이하의 소액 국제거래에 대해서는 자료 제출 의무가 면제될 수 있습니다."
+            },
+            {
+                question: "자료 제출 의무를 이행하지 않은 경우, 세무조사 대상에 선정될 가능성이 높아진다. (O/X)",
+                answer: "O",
+                explanation: "자료 제출 불이행은 과세당국이 조세회피 의심을 갖게 되는 주요 사유 중 하나로, 세무조사 선정에 영향을 미칠 수 있습니다."
+            },
+            {
+                question: "과세당국은 국제거래 자료를 활용하여 역외탈세 혐의를 분석한다. (O/X)",
+                answer: "O",
+                explanation: "제출된 국제거래 관련 자료는 과세당국의 역외탈세 분석 및 과세 위험 평가에 중요한 기초 자료로 활용됩니다."
+            },
+            {
+                question: "거주자는 해외금융계좌의 잔액이 일정 금액을 초과하는 경우 해당 계좌 정보를 국세청에 신고하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제27조의2(해외금융계좌 신고의무)에 명시된 해외금융계좌 신고 의무입니다."
+            },
+            {
+                question: "해외금융계좌 신고 의무는 국내에 주소를 둔 개인에게만 적용된다. (O/X)",
+                answer: "X",
+                explanation: "해외금융계좌 신고 의무는 국내 거주자와 내국법인 모두에게 적용됩니다."
+            },
+            {
+                question: "신고 대상 해외금융계좌는 해외 금융기관에 개설된 모든 종류의 계좌를 포함한다. (O/X)",
+                answer: "O",
+                explanation: "예금, 적금, 펀드, 주식, 채권 등 모든 종류의 금융상품 계좌가 포함됩니다."
+            },
+            {
+                question: "해외금융계좌 잔액은 매월 말일 현재의 최고 잔액을 기준으로 한다. (O/X)",
+                answer: "X",
+                explanation: "해외금융계좌 잔액은 해당 연도 중 매월 말일 현재의 잔액을 합산하여 그 합계액이 신고 기준 금액을 초과하는 경우 신고 대상이 됩니다. '최고 잔액' 기준이 아닙니다."
+            },
+            {
+                question: "해외금융계좌 신고 기한은 매년 6월 말일까지이다. (O/X)",
+                answer: "X",
+                explanation: "해외금융계좌 신고 기한은 매년 6월 1일부터 6월 30일까지입니다."
+            },
+            {
+                question: "해외금융계좌 신고 의무를 위반한 경우 과태료가 부과될 수 있으며, 형사처벌을 받을 수도 있다. (O/X)",
+                answer: "O",
+                explanation: "신고 의무 위반 시 과태료 및 일정 금액 이상인 경우 형사처벌의 대상이 될 수 있습니다."
+            },
+            {
+                question: "해외금융계좌 신고 대상 금액은 미화 10만 달러 상당액을 초과하는 경우이다. (O/X)",
+                answer: "X",
+                explanation: "국내 거주자 및 내국법인의 해외금융계좌 신고 기준 금액은 현재 5억원(원화)을 초과하는 경우입니다."
+            },
+            {
+                question: "해외금융계좌 신고 의무는 비거주자에게는 적용되지 아니한다. (O/X)",
+                answer: "O",
+                explanation: "해외금융계좌 신고 의무는 국내 '거주자' 및 '내국법인'에게 적용되며, 비거주자에게는 적용되지 않습니다."
+            },
+            {
+                question: "해외금융계좌 신고를 하지 않은 사실을 자진 신고하면 과태료 감면 혜택을 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "신고 불이행 사실을 기한 후 자진 신고하는 경우 과태료 감면 혜택을 받을 수 있습니다."
+            },
+            {
+                question: "해외금융계좌 신고 의무는 역외탈세 방지 및 검은 돈 세탁 방지를 위한 제도이다. (O/X)",
+                answer: "O",
+                explanation: "해외금융계좌 신고 제도는 투명한 과세 환경을 조성하고 자금 세탁 및 역외 탈세를 방지하는 데 기여합니다."
+            },
+            {
+                question: "해외금융계좌에 예치된 비트코인 등 가상자산은 신고 대상에 포함되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "국제조세조정에 관한 법률 시행령에 따라 일정 요건을 충족하는 가상자산 또한 해외금융계좌 신고 대상에 포함될 수 있습니다."
+            },
+            {
+                question: "해외금융계좌 신고 시 실제 소유자가 아닌 명의자도 신고 의무를 가진다. (O/X)",
+                answer: "O",
+                explanation: "실제 소유자와 명의자가 다른 경우, 명의자 또한 신고 의무를 가집니다."
+            },
+            {
+                question: "해외금융계좌에 대한 정보는 조세 목적 외의 용도로는 사용될 수 없다. (O/X)",
+                answer: "X",
+                explanation: "해외금융계좌 정보는 법률에 따라 조세 목적 외에도 자금 세탁 방지 등 다른 목적으로도 활용될 수 있습니다."
+            },
+            {
+                question: "해외금융계좌의 잔액이 신고 기준금액 미만인 경우에도 자발적으로 신고할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "의무가 아니더라도 자발적으로 신고하는 것은 가능합니다."
+            },
+            {
+                question: "해외금융계좌 신고는 계좌 단위로 이루어진다. (O/X)",
+                answer: "O",
+                explanation: "각 금융기관에 개설된 계좌별로 정보를 취합하여 신고합니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 조세조약에 우선하여 적용된다. (O/X)",
+                answer: "X",
+                explanation: "국제법 우선 원칙에 따라 조세조약은 국내 세법인 국제조세조정에 관한 법률보다 우선 적용됩니다. (국제조세조정에 관한 법률 제2조)"
+            },
+            {
+                question: "국제조세조정에 관한 법률은 법인세 및 소득세에 관한 사항만을 규정한다. (O/X)",
+                answer: "X",
+                explanation: "이 법은 법인세 및 소득세 외에 상속세, 증여세 등 국제거래와 관련된 다양한 조세 분야를 포괄하여 규정합니다."
+            },
+            {
+                question: "이 법에서 정하는 가산세는 다른 세법에서 정하는 가산세와 중복하여 부과될 수 없다. (O/X)",
+                answer: "X",
+                explanation: "각 세법의 가산세 부과 요건이 충족되면 별도로 부과될 수 있습니다."
+            },
+            {
+                question: "국세청은 국제거래에 대한 과세 적정성을 확보하기 위하여 정보 교환 협정을 체결할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국제적인 조세회피 방지를 위해 국가 간 정보 교환은 필수적이며, 이를 위한 협정을 체결합니다."
+            },
+            {
+                question: "조세조약은 이중과세를 방지하고 조세회피를 억제하기 위한 국제적인 합의이다. (O/X)",
+                answer: "O",
+                explanation: "조세조약의 주요 목적은 국가 간 이중과세를 제거하고, 조세회피 및 탈세를 방지하는 것입니다."
+            },
+            {
+                question: "조세조약상 비과세 또는 면제 규정이 있는 경우에도 국내법에 따라 과세될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "조세조약은 국내법에 우선하여 적용되므로, 조세조약상 비과세 또는 면제 규정이 있다면 국내법보다 우선합니다."
+            },
+            {
+                question: "사전승인제도(APA)는 납세의무자가 국제거래에 대한 정상가격을 사전에 과세당국과 합의하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "사전승인제도는 납세자가 장래의 국제거래에 대한 정상가격 산출방법 등을 사전에 과세당국과 합의하여 불확실성을 해소하는 제도입니다."
+            },
+            {
+                question: "사전승인제도 신청 시 납세의무자는 관련 자료를 충분히 제출하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "과세당국이 합리적인 판단을 내릴 수 있도록 충분하고 신뢰할 수 있는 자료를 제출해야 합니다."
+            },
+            {
+                question: "사전승인제도의 합의 기간은 원칙적으로 3년이다. (O/X)",
+                answer: "X",
+                explanation: "사전승인제도의 합의 기간은 통상 3년부터 5년까지 다양하게 설정될 수 있습니다. 3년이 원칙은 아닙니다."
+            },
+            {
+                question: "사전승인제도 합의가 이루어지면 해당 기간 동안에는 정상가격 과세조정이 유보된다. (O/X)",
+                answer: "O",
+                explanation: "합의된 내용에 따라 국제거래가 이루어지는 경우, 해당 기간 동안에는 정상가격에 의한 과세조정이 이루어지지 않습니다."
+            },
+            {
+                question: "상호합의절차와 사전승인제도는 모두 이중과세 방지를 위한 제도이다. (O/X)",
+                answer: "O",
+                explanation: "두 제도 모두 국제거래에서 발생할 수 있는 이중과세를 예방하거나 해소하기 위한 중요한 장치입니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 납세의무자의 권익 보호를 위한 규정도 포함한다. (O/X)",
+                answer: "O",
+                explanation: "조세회피 방지 목적 외에도 납세자의 절차적 권리 및 예측 가능성을 보장하기 위한 규정을 포함하고 있습니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 매년 개정될 수 있으므로 최신 법령을 확인하는 것이 중요하다. (O/X)",
+                answer: "O",
+                explanation: "세법은 경제 환경 및 국제 조세 동향에 따라 빈번하게 개정되므로, 항상 최신 법령을 확인해야 합니다."
+            },
+            {
+                question: "역외탈세 제보자에 대한 포상금 제도는 국제조세조정에 관한 법률에 근거한다. (O/X)",
+                answer: "O",
+                explanation: "국제조세조정에 관한 법률 제28조(포상금 지급)에 따라 역외탈세 제보자에게 포상금을 지급할 수 있습니다."
+            },
+            {
+                question: "국제조세조정에 관한 법률은 국내 거주자와 비거주자 간의 모든 거래에 적용된다. (O/X)",
+                answer: "X",
+                explanation: "국제조세조정에 관한 법률은 특수관계인과의 국제거래에 대한 과세조정을 주된 내용으로 합니다. 특수관계가 없는 일반적인 국제거래에는 정상가격 원칙이 직접적으로 적용되지 않을 수 있습니다."
+            }
+        ];
+
+        /**
+         * Loads embedded quiz data synchronously.
+         * @returns {Promise<Array>} Quiz data array
+         */
+        async function loadQuizData() {
+            return internationalTaxQuizData; // Changed to new quiz data
+        }
+
+        // ============================ Quiz start and initialization ============================
+        /**
+         * Initializes and starts the quiz.
+         * @param {number} numQuestions - Number of questions to play
+         */
+        async function startQuiz(numQuestions) {
+            allQuizData = await loadQuizData(); // Load embedded quiz data
+            if (allQuizData.length === 0) {
+                showMessage("앗! 퀴즈 문제를 찾을 수 없어... 😥");
+                showScreen('start');
+                return;
+            }
+
+            // If requested number of questions is more than total questions, use all questions
+            if (numQuestions > allQuizData.length) {
+                quizTotalQuestions = allQuizData.length;
+                showMessage(`요청한 문제 수(${numQuestions}개)가 전체 문제 수(${allQuizData.length}개)보다 많습니다. 전체 ${quizTotalQuestions}문제를 사용해요!`);
+            } else {
+                quizTotalQuestions = numQuestions;
+            }
+
+            // Shuffle all questions and slice by requested number
+            const shuffledAllQuestions = [...allQuizData];
+            shuffleArray(shuffledAllQuestions);
+            currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz start
+        }
+
+        /**
+         * Restarts the quiz (full or incorrect questions).
+         * @param {number|'incorrect'} mode - Number of questions to restart with, or 'incorrect' for incorrect questions
+         */
+        function restartQuiz(mode) {
+            if (mode === 'incorrect') {
+                currentQuizData = [...incorrectQuestions]; // Set quiz data to incorrect questions
+                if (currentQuizData.length === 0) {
+                    showMessage('와! 틀린 문제가 하나도 없어! 대단해! 👍');
+                    showScreen('end'); // Stay on end screen if no incorrect questions
+                    return;
+                }
+                shuffleArray(currentQuizData); // Shuffle incorrect questions too
+                quizTotalQuestions = currentQuizData.length;
+            } else {
+                const shuffledAllQuestions = [...allQuizData];
+                shuffleArray(shuffledAllQuestions);
+                currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+            }
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz restart
+        }
+
+        /**
+         * Starts the review mode for incorrect questions.
+         */
+        function startReviewMode() {
+            restartQuiz('incorrect'); // Call restart quiz with 'incorrect' mode
+        }
+
+        // ============================ Timer functions ============================
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+            }
+            timerIntervalId = setInterval(() => {
+                timer++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = null;
+        }
+
+        /**
+         * Updates the timer display in MM:SS format.
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ============================ Display functions ============================
+        /**
+         * Displays the current question and its choices.
+         */
+        function displayQuestion() {
+            // Update question count display
+            questionCount.textContent = `문제 ${currentQuestionIndex + 1} / ${quizTotalQuestions}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Displays raw score during quiz
+
+            const question = currentQuizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Clear previous choices and reset styles
+            questionChoicesArea.innerHTML = `
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            `;
+
+            // Attach event listeners to the new O/X choice elements
+            Array.from(questionChoicesArea.children).forEach(choiceDiv => {
+                choiceDiv.addEventListener('click', () => {
+                    if (!isAnswerChecked) { // Ensure only one selection/check per question
+                        playButtonClickSound(); // Play sound immediately on selection
+                        selectChoice(choiceDiv.dataset.choice); // Visually select
+                        checkAnswer(); // Call checkAnswer logic
+                        // Disable choices after an answer is submitted
+                        Array.from(questionChoicesArea.children).forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.classList.add('cursor-not-allowed'); // Add a visual cue for disabled
+                        });
+                    }
+                });
+            });
+
+            // Reset feedback and button text
+            feedbackExplanationArea.classList.add('hidden');
+            feedbackText.textContent = '';
+            explanationText.textContent = '';
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Button text is always "다음 문제" after a choice is made
+            selectedChoice = null; // Clear selected choice
+            isAnswerChecked = false; // Reset answer checked flag for the *new* question
+            resetChoiceStyles(); // Reset choice styles and re-enable pointer events for new question
+        }
+
+        /**
+         * Handles choice selection.
+         * @param {string} choice - The selected choice ('O' or 'X')
+         */
+        function selectChoice(choice) {
+            resetChoiceStyles(); // Clear previous selection styles
+            selectedChoice = choice;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${choice}"]`);
+            selectedChoiceElement.classList.add(
+                'bg-blue-200', 'border-blue-500' // Light mode selection styles
+            );
+            // Apply dark mode specific selection styles
+            if (document.documentElement.classList.contains('dark')) {
+                selectedChoiceElement.classList.add('dark:selected-choice-style'); // Apply custom class for dark mode
+            }
+        }
+
+        /**
+         * Resets the styles of all choices.
+         */
+        function resetChoiceStyles() {
+            Array.from(questionChoicesArea.children).forEach(child => {
+                child.classList.remove(
+                    'bg-blue-200', 'border-blue-500', // selected (light mode)
+                    'bg-green-100', 'border-green-400', // correct (light mode)
+                    'bg-red-200', 'border-red-500',     // incorrect (light mode)
+                    'dark:selected-choice-style', // Remove custom dark mode selected class
+                    'dark:bg-green-700', 'dark:border-green-400', // correct (dark mode)
+                    'dark:bg-red-600', 'dark:border-red-300' // incorrect (dark mode)
+                );
+                child.style.pointerEvents = 'auto'; // Re-enable pointer events for choices
+                child.classList.remove('cursor-not-allowed'); // Remove disabled cursor
+            });
+        }
+
+        /**
+         * Checks the selected answer (called immediately when a choice is made).
+         */
+        function checkAnswer() {
+            isAnswerChecked = true; // Set flag to indicate answer has been checked
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Change button text to "다음 문제"
+            feedbackExplanationArea.classList.remove('hidden'); // Show feedback area
+
+            const currentQuestion = currentQuizData[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${selectedChoice}"]`);
+            const correctChoiceElement = questionChoicesArea.querySelector(`[data-choice="${correctAnswer}"]`);
+
+            // Highlight correct answer
+            correctChoiceElement.classList.add('bg-green-100', 'border-green-400', 'dark:bg-green-700', 'dark:border-green-400');
+
+            if (selectedChoice === correctAnswer) {
+                score++; // Increment raw score
+                feedbackText.textContent = '딩동댕! 잘했어! 🎉';
+                // Remove previous error state colors and add success state colors including dark mode variants
+                feedbackText.classList.remove('text-red-600', 'dark:text-red-400');
+                feedbackText.classList.add('text-green-600', 'dark:text-green-400');
+                playCorrectSound(); // Play correct sound
+            } else {
+                feedbackText.textContent = '아쉬워! ㅠㅠ 다시 생각해볼까? 🧐';
+                // Remove previous success state colors and add error state colors including dark mode variants
+                feedbackText.classList.remove('text-green-600', 'dark:text-green-400');
+                feedbackText.classList.add('text-red-600', 'dark:text-red-400');
+                // Ensure selected incorrect answer removes selection highlight properly and applies incorrect style
+                selectedChoiceElement.classList.remove('bg-blue-200', 'border-blue-500', 'dark:selected-choice-style'); // Remove selected style
+                selectedChoiceElement.classList.add('bg-red-200', 'border-red-500', 'dark:bg-red-600', 'dark:border-red-300'); // Add incorrect style
+                incorrectQuestions.push(currentQuestion); // Add to incorrect questions
+                playIncorrectSound(); // Play incorrect sound
+            }
+            explanationText.textContent = `꼼꼼 해설: ${currentQuestion.explanation}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Update score immediately (raw score)
+        }
+
+        /**
+         * Moves to the next question or ends the quiz (now always called by checkNextButton).
+         */
+        function checkOrNextQuestion() {
+            moveToNextQuestion();
+            playButtonClickSound(); // Play sound on button click
+        }
+
+        /**
+         * Moves to the next question or ends the quiz.
+         */
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizTotalQuestions) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz and displays the final score.
+         */
+        function endQuiz() {
+            stopTimer(); // Stop the timer
+            showScreen('end');
+
+            // Calculate final score based on 100-point scale
+            const finalCalculatedScore = (score / quizTotalQuestions) * 100;
+            const correctCount = score;
+            const incorrectCount = incorrectQuestions.length;
+
+            // Display all information in the finalScoreDisplay element
+            finalScoreDisplay.textContent = `(총 ${quizTotalQuestions}문제, ${correctCount}개 정답, ${incorrectCount}개 오답! 대단해! 🎉 점수: ${finalCalculatedScore.toFixed(0)}점)`;
+            
+            playEndSound(); // Play end sound
+            updateQuizHeaderVisibility(false); // Hide quiz header
+            endQuizButtonsArea.classList.remove('hidden'); // Ensure buttons are visible on end screen
+        }
+
+        /**
+         * Controls which screen is visible.
+         * @param {'start'|'quiz'|'end'} screenName - The name of the screen to show
+         */
+        function showScreen(screenName) {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endQuizScreen.classList.add('hidden');
+
+            // Always hide settings initially, then show only if it's the start screen
+            settingsControls.classList.add('hidden'); // Hide settings for all screens by default
+
+            if (screenName === 'start') {
+                startScreen.classList.remove('hidden');
+                settingsControls.classList.remove('hidden'); // Show settings only on start screen
+            } else if (screenName === 'quiz') {
+                quizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            } else if (screenName === 'end') {
+                endQuizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            }
+        }
+
+        /**
+         * Toggles the visibility of the quiz header elements.
+         * @param {boolean} show - True to show, false to hide
+         */
+        function updateQuizHeaderVisibility(show) {
+            if (show) {
+                quizHeader.classList.remove('hidden');
+            } else {
+                quizHeader.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Shuffles an array randomly (Fisher-Yates shuffle algorithm).
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // ============================ Event Listeners ============================
+
+        // Start screen button event listeners
+        start10Button.addEventListener('click', () => startQuiz(10));
+        start20Button.addEventListener('click', () => startQuiz(20));
+        start40Button.addEventListener('click', () => startQuiz(40));
+
+        // This button now always moves to the next question or ends the quiz
+        checkNextButton.addEventListener('click', checkOrNextQuestion);
+        endEarlyButton.addEventListener('click', endQuiz);
+        // 'Restart Full Quiz' button restarts with the current quiz session's question count
+        restartFullQuizButton.addEventListener('click', () => restartQuiz(quizTotalQuestions));
+        reviewIncorrectButton.addEventListener('click', startReviewMode);
+        goToHomeButton.addEventListener('click', () => {
+            location.reload(); // Go to home screen = reload page
+        });
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Toggle icons based on dark mode status
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sound toggle event listener
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled; // Toggle sound status
+            // Update Tone.Destination.mute immediately
+            Tone.Destination.mute = !isSoundEnabled;
+            // Toggle icons based on sound status
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+
+
+        // ============================ Quiz initialization and start on DOMContentLoaded ============================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially show only the start screen, hide all quiz related elements
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden'); // Explicitly hide quizScreen
+            endQuizScreen.classList.add('hidden'); // Explicitly hide endQuizScreen
+
+            quizHeader.classList.add('hidden');
+            questionChoicesArea.classList.add('hidden');
+            feedbackExplanationArea.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            endQuizButtonsArea.classList.add('hidden'); // This line was important!
+            scoreDisplay.classList.add('hidden');
+
+            // Settings control should only be visible on the start screen when the page loads
+            showScreen('start'); // This handles visibility of settingsControls correctly
+
+            // Set initial dark mode icon based on system preference or saved state
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+
+            // Set initial sound icon (default: on)
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
